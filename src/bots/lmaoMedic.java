@@ -26,7 +26,7 @@ public class lmaoMedic extends Bot {
 	private BotInfo me;
 	private BotInfo[] liveBots, deadBots;
 	
-	private boolean shotOK;
+	private boolean shotOK, moving;
 
 	private Bullet[] bullets;
 	
@@ -41,6 +41,8 @@ public class lmaoMedic extends Bot {
 		
 		//Int
 		move = 0; //Current move
+		
+		moving = true;
 		
 		UP = BattleBotArena.UP;
 		DOWN = BattleBotArena.DOWN;
@@ -64,9 +66,15 @@ public class lmaoMedic extends Bot {
 	
 	public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
 		setPublics(me,shotOK,liveBots,deadBots,bullets);
-		if(willHitEdge(LEFT,20)){
-			System.out.println("sjdbsbd");
+		move = 0;
+		
+		if(moving){
+			if(moveTo(100,100)){
+				HelperMethods.say("Done moving");
+				//moving = false;
+			}
 		}
+		
 		setImage();
 		return move;
 	}
@@ -76,7 +84,7 @@ public class lmaoMedic extends Bot {
 	private void setPublics(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets){
 		this.me = me;
 		this.shotOK = shotOK;
-		this.liveBots = liveBots;
+		this.liveBots = liveBots;						
 		this.deadBots = deadBots;
 		this.bullets = bullets;
 		this.pos = new Vector2(me.getX(),me.getY());
@@ -88,6 +96,64 @@ public class lmaoMedic extends Bot {
 		return new Role(RoleType.MEDIC);
 	}
 	
+	
+	/**
+	 * Starts moving to the given coord
+	 */
+	private boolean moveTo(double x, double y){
+		//In order for this to work in your code, Tyler you need to change pos.x to me.getX() and pos.y to me.getY()
+		
+		System.out.println(pos.x + ","+ pos.y);
+		
+		if(x != pos.x){//If not at the x location
+			switch(onSide("left",new Vector2(x,y))){
+				case 3: //Left
+					//Try to move left
+					if(isPathClear(LEFT, 40)){
+						move = LEFT;
+						return false;
+					}else if(isPathClear(UP, 40)){
+						move = UP;
+						return false;
+					}else if(isPathClear(DOWN, 40)){
+						move = DOWN;
+						return false;
+					}
+					
+					
+				case 4: //Right
+					//Try to move right
+					if(isPathClear(RIGHT, 40)){
+						move = RIGHT;
+						return false;
+					}else if(isPathClear(UP, 40)){
+						move = UP;
+						return false;
+					}else if(isPathClear(DOWN, 40)){
+						move = DOWN;
+						return false;
+					}
+			
+			}
+		}else if(y != pos.y){//If not at the y location
+			switch(onSide("up",new Vector2(x,y))){
+				case 1: //Up
+					//Try to move up
+					move = UP;
+					return false;
+					
+				case 2: //Down
+					//Try to move down
+					move = DOWN;
+					return false;
+			}//End of switch
+		}else{//At pos
+			return true;
+		}
+	
+		return false;//Error
+		
+	}//End of moveTo method
 	
 	/**
 	 * Checks if there will be bots, bullets or graves in your path
@@ -230,6 +296,34 @@ public class lmaoMedic extends Bot {
 			if(pos.x+RADIUS >= botX+RADIUS){
 				return LEFT;//The bot is above me
 			}else if(pos.x+RADIUS < botX+RADIUS){
+				return RIGHT;
+			}
+		}
+		
+		return 0;//Returns 0 if the was an error
+	}
+	
+	/**
+	 * Returns what side the xy coord is on
+	 * @param updown STRING
+	 * @param xy VECTOR2
+	 * @return INT
+	 */
+	private int onSide(String updown, Vector2 xy){
+		double botX = xy.x;
+		double botY = xy.y;
+		
+		if(updown == "up"||updown == "down"){//We are checking for up and down
+			if(pos.y >= botY){
+				return UP;//The bot is above me
+			}else if(pos.y < botY){
+				return DOWN;
+			}
+			
+		}else if(updown == "left"||updown == "right"){
+			if(pos.x >= botX){
+				return LEFT;//The bot is above me
+			}else if(pos.x < botX){
 				return RIGHT;
 			}
 		}
