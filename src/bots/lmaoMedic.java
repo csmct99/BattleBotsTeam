@@ -87,7 +87,7 @@ public class lmaoMedic extends Bot {
 	
 	
 	/**
-	 * Checks if there will be bots, bull`ets or graves in your path
+	 * Checks if there will be bots, bullets or graves in your path
 	 * @return BOOLEAN If the path is clear
 	 */
 	private boolean isPathClear(int direction, double amount){
