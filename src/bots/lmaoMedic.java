@@ -36,11 +36,11 @@ public class lmaoMedic extends Bot {
 	
 	public lmaoMedic() {
 		//String
-		TEAMNAME = "AyyLamo";
-		NAME = "MEDIC";
+		TEAMNAME = "AyyLamo"; //Team name
+		NAME = "MEDIC"; //Bot name
 		
 		//Int
-		move = 0;
+		move = 0; //Current move
 		
 		UP = BattleBotArena.UP;
 		DOWN = BattleBotArena.DOWN;
@@ -50,7 +50,7 @@ public class lmaoMedic extends Bot {
 		FIREDOWN = BattleBotArena.FIREDOWN;
 		FIRELEFT = BattleBotArena.FIRELEFT;
 		FIRERIGHT = BattleBotArena.FIRERIGHT;
-		WIDTH = RADIUS*2;
+		WIDTH = RADIUS*2; //Width of the bot
 		
 		
 		
