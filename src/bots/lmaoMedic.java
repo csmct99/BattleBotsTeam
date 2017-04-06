@@ -64,6 +64,9 @@ public class lmaoMedic extends Bot {
 	
 	public int getMove(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets) {
 		setPublics(me,shotOK,liveBots,deadBots,bullets);
+		if(willHitEdge(LEFT,20)){
+			System.out.println("sjdbsbd");
+		}
 		setImage();
 		return move;
 	}
@@ -234,6 +237,47 @@ public class lmaoMedic extends Bot {
 		return 0;//Returns 0 if the was an error
 	}
 		
+	/**
+	 * Returns if you will hit the wall if you go in the direction for x amount of pixels
+	 * @param direction INT 
+	 * @param amount DOUBLE
+	 * @return BOOLEAN Will I hit the wall?
+	 */
+	private boolean willHitEdge(int direction, double amount){
+		switch(direction){
+			case 1://up
+				if(pos.y-amount < BattleBotArena.TOP_EDGE)
+				{
+					return true;
+				}
+				break;
+				
+			case 2://down
+				if(pos.y+WIDTH+amount > BattleBotArena.BOTTOM_EDGE)
+				{
+					return true;
+				}
+				break;
+				
+			case 3://left
+				if(pos.x-amount < BattleBotArena.LEFT_EDGE)
+				{
+					return true;
+				}
+				break;
+				
+			case 4://right
+				if(pos.x+WIDTH+amount > BattleBotArena.RIGHT_EDGE)
+				{
+					return true;
+				}
+				break;
+		}
+		
+		
+		return false;
+	}
+	
 	private double distanceMid(Vector2 pos1, Vector2 pos2){
 		return (Math.sqrt(Math.pow(((pos1.x+RADIUS)-(pos2.x+RADIUS)),2) + Math.pow(((pos1.y+RADIUS)-(pos2.y+RADIUS)), 2)));//MMMMMAAAAAAAAAAAAAAAATTTTTHHHHHH
 	}
