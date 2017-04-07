@@ -321,7 +321,7 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 	/**
 	 * Round time, in seconds
 	 */
-	public static final int 	TIME_LIMIT = 100;
+	public static final int 	TIME_LIMIT = 200;
 	/**
 	 * TIME_LIMIT / SECS_PER_MSG = Number of messages allowed per round
 	 */
@@ -334,7 +334,7 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 	 * Total number of Bots in round 1 (if you have fewer than this, the rest of the spots
 	 * in the array will be filled with Drones, RandBots, and Sentries).
 	 */
-	public static final int 	NUM_BOTS = 2;
+	public static final int 	NUM_BOTS = 16;
 	/**
 	 * Rowbottom 
 	 * Not used*Number of bullets on screen at once for each bot
@@ -714,7 +714,7 @@ public class BattleBotArena extends JPanel implements MouseListener, MouseWheelL
 				//					bots[i] = new RandBot();
 				else{
 					//				{
-					bots[i] = new TestBot();
+					bots[i] = new RandBot();
 					//c=0;
 				}
 				c++;

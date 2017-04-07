@@ -20,17 +20,21 @@ public class lmaoMedic extends Bot {
 
 	private final String TEAMNAME, NAME;
 	
+	private final double BOTSPEED;
+	
 	private final int UP, DOWN, LEFT, RIGHT, FIREUP, FIREDOWN, FIRELEFT, FIRERIGHT, WIDTH;
 	private int move;
 	
 	private BotInfo me;
 	private BotInfo[] liveBots, deadBots;
 	
-	private boolean shotOK, moving;
+	private boolean shotOK, moving, movingx;
 
 	private Bullet[] bullets;
 	
 	private Vector2 pos;
+	
+	private final Role BOTROLE;
 	
 	private Image current, up, down, left, right;
 	
@@ -43,6 +47,7 @@ public class lmaoMedic extends Bot {
 		move = 0; //Current move
 		
 		moving = true;
+		movingx = true;
 		
 		UP = BattleBotArena.UP;
 		DOWN = BattleBotArena.DOWN;
@@ -52,6 +57,11 @@ public class lmaoMedic extends Bot {
 		FIREDOWN = BattleBotArena.FIREDOWN;
 		FIRELEFT = BattleBotArena.FIRELEFT;
 		FIRERIGHT = BattleBotArena.FIRERIGHT;
+		BOTSPEED = BattleBotArena.BOT_SPEED;
+		
+		BOTROLE = new Role(RoleType.TANK);
+		
+		
 		WIDTH = RADIUS*2; //Width of the bot
 		
 		
@@ -60,7 +70,8 @@ public class lmaoMedic extends Bot {
 	}
 
 	public void newRound() {
-		
+		moving = true;
+		movingx = true;
 	}
 
 	
@@ -69,7 +80,7 @@ public class lmaoMedic extends Bot {
 		move = 0;
 		
 		if(moving){
-			if(moveTo(100,100)){
+			if(moveTo(600,400)){
 				HelperMethods.say("Done moving");
 				//moving = false;
 			}
@@ -93,29 +104,32 @@ public class lmaoMedic extends Bot {
 	
 	public Role getRole() {
 		
-		return new Role(RoleType.MEDIC);
+		return BOTROLE;
 	}
 	
 	
 	/**
-	 * Starts moving to the given coord
+	 * Starts moving to the given coord avoiding ONLY AVOIDS Bots, Graves and walls though
+	 * @param x DOUBLE x pos
+	 * @param y DOUBLE y pos
 	 */
 	private boolean moveTo(double x, double y){
 		//In order for this to work in your code, Tyler you need to change pos.x to me.getX() and pos.y to me.getY()
 		
+		double Distance = 40;
 		System.out.println(pos.x + ","+ pos.y);
 		
-		if(x != pos.x){//If not at the x location
+		if(!valueWithin(x-(BOTSPEED/2), pos.x, x+(BOTSPEED/2)) && (movingx)){//If not at the x location
 			switch(onSide("left",new Vector2(x,y))){
 				case 3: //Left
 					//Try to move left
-					if(isPathClear(LEFT, 40)){
+					if(isPathClear(LEFT, Distance) && !willHitEdge(LEFT,Distance/4)){
 						move = LEFT;
 						return false;
-					}else if(isPathClear(UP, 40)){
-						move = UP;
+					}else if(isPathClear(UP, Distance) && !willHitEdge(UP,Distance/4)){//Try to move up
+						move = UP; // connor copy and pasted this code
 						return false;
-					}else if(isPathClear(DOWN, 40)){
+					}else if(isPathClear(DOWN, Distance) && !willHitEdge(DOWN,Distance/4)){//Try to move down
 						move = DOWN;
 						return false;
 					}
@@ -123,30 +137,49 @@ public class lmaoMedic extends Bot {
 					
 				case 4: //Right
 					//Try to move right
-					if(isPathClear(RIGHT, 40)){
+					if(isPathClear(RIGHT, Distance) && !willHitEdge(RIGHT,Distance)){//Try to move right
 						move = RIGHT;
 						return false;
-					}else if(isPathClear(UP, 40)){
+					}else if(isPathClear(UP, Distance) && !willHitEdge(UP,Distance)){//Try to move up
 						move = UP;
 						return false;
-					}else if(isPathClear(DOWN, 40)){
+					}else if(isPathClear(DOWN, Distance) && !willHitEdge(DOWN,Distance)){//Try to move down
 						move = DOWN;
 						return false;
 					}
 			
 			}
-		}else if(y != pos.y){//If not at the y location
+		}else if(!valueWithin(y-(BOTSPEED/2), pos.y, y+(BOTSPEED/2))){//If not at the y location
+			movingx = false;
 			switch(onSide("up",new Vector2(x,y))){
 				case 1: //Up
-					//Try to move up
-					move = UP;
-					return false;
 					
+					if(isPathClear(UP, Distance) && !willHitEdge(UP,Distance)){//Try to move up
+						move = UP;
+						return false;
+					}else if(isPathClear(LEFT, Distance) && !willHitEdge(LEFT,Distance)){//Try to move left
+						move = LEFT;
+						return false;
+					}else if(isPathClear(RIGHT, Distance) && !willHitEdge(RIGHT,Distance)){//Try to move right
+						move = RIGHT;
+						return false;
+					}
+				
 				case 2: //Down
-					//Try to move down
-					move = DOWN;
-					return false;
+					if(isPathClear(DOWN, Distance) && !willHitEdge(DOWN,Distance)){//Try to move down
+						move = DOWN;
+						return false;
+					}else if(isPathClear(LEFT, Distance) && !willHitEdge(LEFT,Distance)){//Try to move left
+						move = LEFT;
+						return false;
+					}else if(isPathClear(RIGHT, Distance) && !willHitEdge(RIGHT,Distance)){//Try to move right
+						move = RIGHT;
+						return false;
+					}
+				
 			}//End of switch
+		}else if(valueWithin(y-(BOTSPEED/2), pos.y, y+(BOTSPEED/2)) && !valueWithin(x-(BOTSPEED/2), pos.x, x+(BOTSPEED/2))){//There is probably a better way to do this
+			movingx = true;
 		}else{//At pos
 			return true;
 		}
