@@ -13,9 +13,6 @@ import arena.Bullet;
 import arena.HelperMethods;
 import arena.Vector2;
 
-
-//ECLIPSE IMPORT FROM GITHUB TEST
-
 public class lmaoMedic extends Bot {
 
 	private final String TEAMNAME, NAME;
