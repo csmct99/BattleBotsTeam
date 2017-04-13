@@ -3,6 +3,8 @@ package bots;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.List;
+import java.util.ArrayList;
 
 import roles.Role;
 import roles.RoleType;
@@ -35,6 +37,8 @@ public class lmaoMedic extends Bot {
 	
 	private Image current, up, down, left, right;
 	
+	private ArrayList<Vector2> nodes = new ArrayList<Vector2>(); //Create an array list to store debug points
+	
 	public lmaoMedic() {
 		//String
 		TEAMNAME = "AyyLamo"; //Team name
@@ -63,7 +67,6 @@ public class lmaoMedic extends Bot {
 		
 		
 		
-		
 	}
 
 	public void newRound() {
@@ -76,23 +79,90 @@ public class lmaoMedic extends Bot {
 		setPublics(me,shotOK,liveBots,deadBots,bullets);
 		move = 0;
 		
+		nodes.add(new Vector2(pos.x, pos.y));
+		
 //		if(moving){
 //			if(moveTo(600,400)){
 //				HelperMethods.say("Done moving");
 //				//moving = false;
 //			}
 //		}
-		BotInfo[] bots = CheckTeamAmmo();
 		
-		for(BotInfo bot : bots ){
-			System.out.println(bot);
+//		BotInfo[] bots = CheckTeamAmmo();
+//		
+//		for(BotInfo bot : bots ){
+//			System.out.println(bot);
+//		}
+		
+		for(Vector2 curPos : findPath(new Vector2(10,20))){
+			System.out.println(curPos.x + "  " + curPos.y);
 		}
+		
 		
 		setImage();
 		return move;
 	}
 	
 	//************************************************************************************************************\\
+	
+	/**
+	 * Generates a path to the given point
+	 * @param dest VECTOR2 Destination for the path to plot
+	 * @return ArrayList<Vector2> Path. Example: [10,10],[10,9],[10,8],[11,8]  
+	 */
+	private ArrayList<Vector2> findPath(Vector2 dest){
+		ArrayList<Vector2> path= new ArrayList<Vector2>(), openList= new ArrayList<Vector2>(), closedList = new ArrayList<Vector2>(); //Init 3 lists of Vector2s to be used
+		
+		//closedList.add(new Vector2(pos.x,pos.y,0, manDist(pos,dest)));//Add current pos to closed list  
+		openList.add(new Vector2(pos.x, pos.y+1, manDist(pos,pos), manDist(pos, dest)));
+
+		//http://crunchify.com/how-to-iterate-through-java-list-4-way-to-iterate-through-loop/
+		for(int k = 0; k < openList.size(); k++ ){ //For every pos in the openList // Maybe use a diffferent loop, will this loop allow me to add things and iterate through new things? 
+			Vector2 currentPos = openList.get(k);
+			
+			for(int i =1; i<=4; i++){//Add all adjacent, walkable tiles to the open list
+				if(isPathClear(i, 1)){//TODO this is definitely going to cause weird problems but should be okay for a first quick and dirty run
+					switch(i){
+						case 1://Up
+							openList.add(new Vector2(currentPos.x, currentPos.y-1, manDist(pos,currentPos), manDist(currentPos, dest))); //(x,y,
+							break;
+						case 2://Down
+							openList.add(new Vector2(currentPos.x, currentPos.y+1, manDist(pos,currentPos), manDist(currentPos, dest)));
+							break;
+						case 3://LEft
+							openList.add(new Vector2(currentPos.x-1, currentPos.y, manDist(pos,currentPos), manDist(currentPos, dest)));
+							break;
+						case 4://Right
+							openList.add(new Vector2(currentPos.x+1, currentPos.y, manDist(pos,currentPos), manDist(currentPos, dest)));
+							break;
+					}
+				}else{ //Any non walkable, adjacent tiles are added to the closed list
+					switch(i){
+						case 1://Up
+							closedList.add(new Vector2(currentPos.x, currentPos.y-1));
+							break;
+						case 2://Down
+							closedList.add(new Vector2(currentPos.x, currentPos.y+1));
+							break;
+						case 3://LEft
+							closedList.add(new Vector2(currentPos.x-1, currentPos.y));
+							break;
+						case 4://Right
+							closedList.add(new Vector2(currentPos.x+1, currentPos.y));
+							break;
+					}
+				}
+			}
+			
+			//Get the square on the open list which has the lowest score. Let’s call this square S.
+			for(Vector2 pos : openList){
+								
+			}
+		}
+		
+		System.out.println("NO PATH FOUND!!!!!"); // Uh oh
+		return closedList;
+	}
 	
 	public BotInfo[] CheckTeamAmmo(){
 		
@@ -139,6 +209,9 @@ public class lmaoMedic extends Bot {
 		return BOTROLE;
 	}
 	
+	private double manDist(Vector2 x1, Vector2 x2){
+		return (Math.abs(x1.x-x2.x) + Math.abs(x1.y-x2.y));
+	}
 	
 	/**
 	 * Starts moving to the given coord avoiding ONLY AVOIDS Bots, Graves and walls though
@@ -449,15 +522,22 @@ public class lmaoMedic extends Bot {
 	}
 	
 	public void draw(Graphics g, int x, int y) {
-		if (current != null)
-			g.drawImage(current, x, y, Bot.RADIUS*2, Bot.RADIUS*2, null);
-		else
-		{
-			g.setColor(Color.lightGray);
-			g.fillOval(x, y, Bot.RADIUS*2, Bot.RADIUS*2);
-		}
+		g.drawImage(current, x, y, Bot.RADIUS*2, Bot.RADIUS*2, null); //Draw the bot
+		g.setColor(Color.white);//Default node color
+		drawPoints(nodes, 3, g);
+		
 	}
 
+
+	private void drawPoints(ArrayList<Vector2> nodes, int radius, Graphics g){
+		for(Vector2 node : nodes){
+			if(node.color != null){
+				g.setColor(node.color);
+			}
+			g.fillOval((int)node.x, (int)node.y, radius, radius);
+		}
+		nodes.clear();
+	}
 	
 	public String getName() {
 		
