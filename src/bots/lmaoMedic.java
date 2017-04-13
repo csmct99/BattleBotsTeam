@@ -79,11 +79,16 @@ public class lmaoMedic extends Bot {
 		setPublics(me,shotOK,liveBots,deadBots,bullets);
 		move = 0;
 		
-		if(moving){
-			if(moveTo(600,400)){
-				HelperMethods.say("Done moving");
-				//moving = false;
-			}
+//		if(moving){
+//			if(moveTo(600,400)){
+//				HelperMethods.say("Done moving");
+//				//moving = false;
+//			}
+//		}
+		BotInfo[] bots = CheckTeamAmmo();
+		
+		for(BotInfo bot : bots ){
+			System.out.println(bot);
 		}
 		
 		setImage();
@@ -91,6 +96,36 @@ public class lmaoMedic extends Bot {
 	}
 	
 	//************************************************************************************************************\\
+	
+	public BotInfo[] CheckTeamAmmo(){
+		
+		BotInfo botMedic = null; //Dead if null
+		BotInfo botAttack = null;
+		BotInfo botTank = null;
+		
+		for (BotInfo bot: liveBots){
+			if (bot.getTeamName() == me.getTeamName()){
+				if (bot.getRole() == RoleType.ATTACK){
+					botAttack = bot;
+				}else if (bot.getRole() == RoleType.TANK){
+					botTank = bot;
+				}else if (bot.getRole() == RoleType.MEDIC){
+					botMedic = bot;
+				}
+			}
+		}
+		
+		BotInfo[] botList = new BotInfo[2];
+		
+		//Gets ammo as percentage
+		double medicAmmoPer = ((botMedic.getBulletsLeft()/Role.MEDIC_MAX_AMMO)*100);
+		double attackAmmoPer = ((botAttack.getBulletsLeft()/Role.TANK_MAX_AMMO)*100);
+		double tankAmmoPer = ((botTank.getBulletsLeft()/Role.ATTACK_MAX_AMMO)*100);
+		
+		System.out.println(botMedic.getTeamName() + "   " + botTank.getTeamName() + "   " + botAttack.getTeamName());
+		
+		return null;
+	}
 	
 	private void setPublics(BotInfo me, boolean shotOK, BotInfo[] liveBots, BotInfo[] deadBots, Bullet[] bullets){
 		this.me = me;
@@ -462,6 +497,7 @@ public class lmaoMedic extends Bot {
 		}
 	}
 
+	
 	
 	public String[] imageNames() {
 		String[] paths = {"robotUp.png", "robotDown.png", "robotRight.png", "robotLeft.png"};
