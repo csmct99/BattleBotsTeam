@@ -5,6 +5,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.List;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import roles.Role;
 import roles.RoleType;
@@ -111,57 +112,147 @@ public class lmaoMedic extends Bot {
 	 * @return ArrayList<Vector2> Path. Example: [10,10],[10,9],[10,8],[11,8]  
 	 */
 	private ArrayList<Vector2> findPath(Vector2 dest){
-		ArrayList<Vector2> path= new ArrayList<Vector2>(), openList= new ArrayList<Vector2>(), closedList = new ArrayList<Vector2>(); //Init 3 lists of Vector2s to be used
+		ArrayList<Vector2> path = new ArrayList<Vector2>(), openList= new ArrayList<Vector2>(), closedList = new ArrayList<Vector2>(); //Init 3 lists of Vector2s to be used
 		
-		//closedList.add(new Vector2(pos.x,pos.y,0, manDist(pos,dest)));//Add current pos to closed list  
-		openList.add(new Vector2(pos.x, pos.y+1, manDist(pos,pos), manDist(pos, dest)));
-
-		//http://crunchify.com/how-to-iterate-through-java-list-4-way-to-iterate-through-loop/
-		for(int k = 0; k < openList.size(); k++ ){ //For every pos in the openList // Maybe use a diffferent loop, will this loop allow me to add things and iterate through new things? 
-			Vector2 currentPos = openList.get(k);
-			
-			for(int i =1; i<=4; i++){//Add all adjacent, walkable tiles to the open list
-				if(isPathClear(i, 1)){//TODO this is definitely going to cause weird problems but should be okay for a first quick and dirty run
-					switch(i){
-						case 1://Up
-							openList.add(new Vector2(currentPos.x, currentPos.y-1, manDist(pos,currentPos), manDist(currentPos, dest))); //(x,y,
-							break;
-						case 2://Down
-							openList.add(new Vector2(currentPos.x, currentPos.y+1, manDist(pos,currentPos), manDist(currentPos, dest)));
-							break;
-						case 3://LEft
-							openList.add(new Vector2(currentPos.x-1, currentPos.y, manDist(pos,currentPos), manDist(currentPos, dest)));
-							break;
-						case 4://Right
-							openList.add(new Vector2(currentPos.x+1, currentPos.y, manDist(pos,currentPos), manDist(currentPos, dest)));
-							break;
+		closedList.add(new Vector2(pos.x, pos.y, 0, manDist(pos, dest)));//Add current pos to list
+		
+		for(int i=0; i<4; i++){//Add all adjacent, walkable tiles to open list //TODO Fix length of isPathClear
+			switch(i){
+				case 1://Up
+					if(isPathClear(i,1)){
+						pos.y --;
+						openList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
+						pos.y ++;
+					}else{
+						pos.y --;
+						closedList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
+						pos.y ++;
 					}
-				}else{ //Any non walkable, adjacent tiles are added to the closed list
-					switch(i){
-						case 1://Up
-							closedList.add(new Vector2(currentPos.x, currentPos.y-1));
-							break;
-						case 2://Down
-							closedList.add(new Vector2(currentPos.x, currentPos.y+1));
-							break;
-						case 3://LEft
-							closedList.add(new Vector2(currentPos.x-1, currentPos.y));
-							break;
-						case 4://Right
-							closedList.add(new Vector2(currentPos.x+1, currentPos.y));
-							break;
+					break;
+				case 2://Down
+					if(isPathClear(i,1)){
+						pos.y ++;
+						openList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
+						pos.y --;
+					}else{
+						pos.y ++;
+						closedList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
+						pos.y --;
 					}
-				}
-			}
-			
-			//Get the square on the open list which has the lowest score. Let’s call this square S.
-			for(Vector2 pos : openList){
-								
+					break;
+				case 3://Left
+					if(isPathClear(i,1)){
+						pos.x --;
+						openList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
+						pos.x ++;
+					}else{
+						pos.x --;
+						closedList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
+						pos.x ++;
+					}
+					break;
+				case 4://Right
+					if(isPathClear(i,1)){
+						pos.x --;
+						openList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
+						pos.x ++;
+					}else{
+						pos.x --;
+						closedList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
+						pos.x ++;
+					}
+					break;
 			}
 		}
 		
+		while(true){
+			//Get the square on the open list with the lowest score and refer to it as bestTile.
+			Vector2 bestTile = null;//TODO MAY CAUSE TROUBLE USING THIS METHOD OF FINDING BEST
+			for(Vector2 tile: openList){ //For every tile in the openList
+				if(bestTile != null){//If the variable bestTile has been set
+					if((bestTile.g + bestTile.h) <= (tile.g + tile.h)){ //If this tile is better than the old "best" tile //TODO make a function to calculate score
+						bestTile = tile;
+					}else{
+						continue;//Restart loop becuase this tile isnt good enough
+					}
+				}else{
+					bestTile = tile; //Set the first time tile 
+				}
+			}
+			
+			if(bestTile == null){
+				System.out.println("ERROR 01"); //TODO ERROR 01, No path possible. I think.
+				break;
+			}
+			
+			//Remove bestTile from open list and add it to the closed list
+			openList.remove(bestTile);
+			closedList.add(bestTile);
+			
+			//For each tile in bestTile's walkable distance
+			Vector2 T = null;
+			for(int t = 0; t < 4; t++){//For each direction
+				if(isPathClear(t,1,bestTile)){//Check if the direction is safe
+					switch(t){
+						case 1://Up
+							T = new Vector2(bestTile.x, bestTile.y-1,manDist(pos, bestTile),manDist(pos,dest));
+							break;
+						case 2://Down
+							T = new Vector2(bestTile.x, bestTile.y+1,manDist(pos, bestTile),manDist(pos,dest));
+							break;
+						case 3://Left
+							T = new Vector2(bestTile.x-1, bestTile.y,manDist(pos, bestTile),manDist(pos,dest));
+							break;
+						case 4://Right
+							T = new Vector2(bestTile.x+1, bestTile.y,manDist(pos, bestTile),manDist(pos,dest));
+							break;
+					}
+				}else{ //Add all blocked tiles to closed list
+					switch(t){
+						case 1://Up
+							closedList.add(new Vector2(bestTile.x, bestTile.y-1,manDist(pos, bestTile),manDist(pos,dest)));
+							break;
+						case 2://Down
+							closedList.add(new Vector2(bestTile.x, bestTile.y+1,manDist(pos, bestTile),manDist(pos,dest)));
+							break;
+						case 3://Left
+							closedList.add(new Vector2(bestTile.x-1, bestTile.y,manDist(pos, bestTile),manDist(pos,dest)));
+							break;
+						case 4://Right
+							closedList.add(new Vector2(bestTile.x+1, bestTile.y,manDist(pos, bestTile),manDist(pos,dest)));
+							break;
+					}
+				}//End if/else
+				
+				
+				//If T in closed list, ignore it
+				if(closedList.contains(T)){
+					break;
+				}
+				
+				//If T is not in open list, add it and figure out score
+				if(!openList.contains(T)){
+					openList.add(T);
+				}
+				
+				//If T is already in in open list: Check if the F score is lower when we use the current generated path to get there.
+				//If it is, update its score and update its parent.
+				
+			}//End for each direction
+			
+			
+			
+			
+		}//While loop end
+		
+		
+		
+		
+		
+		
+		
 		System.out.println("NO PATH FOUND!!!!!"); // Uh oh
-		return closedList;
+		return openList;
 	}
 	
 	public BotInfo[] CheckTeamAmmo(){
@@ -413,6 +504,122 @@ public class lmaoMedic extends Bot {
 		return true;//It is safe
 	}
 
+	private boolean isPathClear(int direction, double amount, Vector2 pos){
+		
+		for(BotInfo bot : liveBots){
+			Vector2 botPos = new Vector2(bot.getX(),bot.getY());
+			
+			switch(direction){
+			//1 up, 2 down, 3 left, 4 right
+				case 1://up
+					if(onSide("up",bot) == UP){//If the bot is above me
+						if(distanceMid(pos,botPos) <= amount){//If in the check distance
+							if(valueWithin(botPos.x,pos.x,botPos.x+WIDTH)){//If the bot is in my path
+								return false;
+							}else if(valueWithin(botPos.x,pos.x+WIDTH,botPos.x+WIDTH)){//If the bot is in my path
+								return false;
+							}
+						}
+					}
+					break;
+					
+				case 2://down
+					if(onSide("up",bot) == DOWN){//If the bot is below me
+						if(distanceMid(pos,botPos) <= amount){//If in the check distance
+							if(valueWithin(botPos.x,pos.x,botPos.x+WIDTH)){//If the bot is in my path
+								return false;
+							}else if(valueWithin(botPos.x,pos.x+WIDTH,botPos.x+WIDTH)){//If the bot is in my path
+								return false;
+							}
+						}
+					}
+					break;
+					
+				case 3://left
+					if(onSide("left",bot) == LEFT){//If the bot is left of me
+						if(distanceMid(pos,botPos) <= amount){//If in the check distance 
+							if(valueWithin(botPos.y,pos.y,botPos.y+WIDTH)){//If the bot is in my path
+								return false;
+							}else if(valueWithin(botPos.y,pos.y+WIDTH,botPos.y+WIDTH)){//If the bot is in my path
+								return false;
+							}
+						}
+					}
+					break;
+					
+				case 4://right
+					if(onSide("left",bot) == RIGHT){//If the bot is right of me
+						if(distanceMid(pos,botPos) <= amount){//If in the check distance 
+							if(valueWithin(botPos.y,pos.y,botPos.y+WIDTH)){//If the bot is in my path
+								return false;
+							}else if(valueWithin(botPos.y,pos.y+WIDTH,botPos.y+WIDTH)){//If the bot is in my path
+								return false;
+							}
+						}
+					}
+					break;
+			}
+		}
+		
+		for(BotInfo bot: deadBots){ //TODO TEST THIS
+			Vector2 botPos = new Vector2(bot.getX(),bot.getY());
+			
+			switch(direction){
+			//1 up, 2 down, 3 left, 4 right
+				case 1://up
+					if(onSide("up",bot) == UP){//If the bot is above me
+						if(distanceMid(pos,botPos) <= amount){//If in the check distance
+							if(valueWithin(botPos.x,pos.x,botPos.x+WIDTH)){//If the bot is in my path
+								return false;
+							}else if(valueWithin(botPos.x,pos.x+WIDTH,botPos.x+WIDTH)){//If the bot is in my path
+								return false;
+							}
+						}
+					}
+					break;
+					
+				case 2://down
+					if(onSide("up",bot) == DOWN){//If the bot is below me
+						if(distanceMid(pos,botPos) <= amount){//If in the check distance
+							if(valueWithin(botPos.x,pos.x,botPos.x+WIDTH)){//If the bot is in my path
+								return false;
+							}else if(valueWithin(botPos.x,pos.x+WIDTH,botPos.x+WIDTH)){//If the bot is in my path
+								return false;
+							}
+						}
+					}
+					break;
+					
+				case 3://left
+					if(onSide("left",bot) == LEFT){//If the bot is left of me
+						if(distanceMid(pos,botPos) <= amount){//If in the check distance 
+							if(valueWithin(botPos.y,pos.y,botPos.y+WIDTH)){//If the bot is in my path
+								return false;
+							}else if(valueWithin(botPos.y,pos.y+WIDTH,botPos.y+WIDTH)){//If the bot is in my path
+								return false;
+							}
+						}
+					}
+					break;
+					
+				case 4://right
+					if(onSide("left",bot) == RIGHT){//If the bot is right of me
+						if(distanceMid(pos,botPos) <= amount){//If in the check distance 
+							if(valueWithin(botPos.y,pos.y,botPos.y+WIDTH)){//If the bot is in my path
+								return false;
+							}else if(valueWithin(botPos.y,pos.y+WIDTH,botPos.y+WIDTH)){//If the bot is in my path
+								return false;
+							}
+						}
+					}
+					break;
+			}
+		}
+	
+	
+		return true;//It is safe
+	}
+	
 	/**
 	 * Returns what side the bot is on
 	 * @param updown STRING "up","left" defines if oyu should be looking up and down or left and right
