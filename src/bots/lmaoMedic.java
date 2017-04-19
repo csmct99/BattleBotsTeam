@@ -84,23 +84,14 @@ public class lmaoMedic extends Bot {
 		
 		nodes.add(new Vector2(pos.x, pos.y));
 		
-//		if(moving){
-//			if(moveTo(600,400)){
-//				HelperMethods.say("Done moving");
-//				//moving = false;
-//			}
-//		}
+		if(moving){
+			if(moveTo(600,400)){
+				HelperMethods.say("Done moving");
+				//moving = false;
+			}
+		}
 		
 //		BotInfo[] bots = CheckTeamAmmo();
-//		
-//		for(BotInfo bot : bots ){
-//			System.out.println(bot);
-//		}
-		
-		if(first){
-			path = findPath(new Vector2(300,300));
-			first = false;
-		}
 		
 		
 		
@@ -109,147 +100,7 @@ public class lmaoMedic extends Bot {
 	}
 	
 	//************************************************************************************************************\\
-	
-	/**
-	 * Generates a path to the given point
-	 * @param dest VECTOR2 Destination for the path to plot
-	 * @return ArrayList<Vector2> Path. Example: [10,10],[10,9],[10,8],[11,8]  
-	 */
-	private ArrayList<Vector2> findPath(Vector2 dest){
-		
-		//Init openList, ClosedList
-		ArrayList<Vector2> path = new ArrayList<Vector2>(), openList= new ArrayList<Vector2>(), closedList = new ArrayList<Vector2>(); //Init 3 lists of Vector2s to be used
-		
-		//Put start node in openList
-		openList.add(new Vector2(pos.x, pos.y, 0, manDist(pos, dest)));
-		
-		//While openList is not empty
-		while(!openList.isEmpty()){
-			
-			//Find the node with the least f, call it Q
-			Vector2 Q = openList.get(0);
-			for(Vector2 node : openList){
-				if(node.getF() > Q.getF()){
-					Q = node;
-				}
-			}
-			
-			if(Q == null){
-				System.out.println("ERROR, NO Q VALUE FOUND");
-				break;
-			}
-			
-			
-			//Pop Q off the open list
-			openList.remove(Q);
-			
-			//Generate Q's four successors and parent them to Q
-			Vector2 s = null;
-			
-			for(int i = 1; i <= 4; i++){
-				double gridSize = 20;
-				System.out.println(i);
-				
-				switch(i){
-					case 1://Up
-						s = new Vector2(Q.x,Q.y-BOTSPEED,manDist(pos,Q),manDist(Q,dest));
-						s.parent = Q;
-						
-						if(!isPathClear(i, gridSize, Q)){//If the path is not clear in desired direction
-							closedList.add(s);
-							continue;//Continue the for loop
-						}
-						
-						break;//Break the case
-						
-					case 2://Down
-						s = new Vector2(Q.x,Q.y+BOTSPEED,manDist(pos,Q),manDist(Q,dest));
-						s.parent = Q;
-						
-						if(!isPathClear(i, gridSize, Q)){//If the path is not clear in desired direction
-							closedList.add(s);
-							continue;//Continue the for loop
-						}
-						
-						break;//Break the case
-						
-					case 3://Left
-						s = new Vector2(Q.x-BOTSPEED,Q.y,manDist(pos,Q),manDist(Q,dest));
-						s.parent = Q;
-						
-						if(!isPathClear(i, gridSize, Q)){//If the path is not clear in desired direction
-							closedList.add(s);
-							continue;//Continue the for loop
-						}
-						
-						break;//Break the case
-						
-					case 4://Right
-						s = new Vector2(Q.x+BOTSPEED,Q.y,manDist(pos,Q),manDist(Q,dest));
-						s.parent = Q;
-						
-						if(!isPathClear(i, gridSize, Q)){//If the path is not clear in desired direction
-							closedList.add(s);
-							continue;//Continue the for loop
-						}
-						
-						break;//Break the case	
-				}//End the switch for directions
-				
-				//Error
-				if(s == null){
-					System.out.println("ERROR NO s VECTOR");//TODO ERROR NO s VECTOR
-					break;
-				}
-				
-				//If S is the goal, stop.
-				if(s.x == dest.x && s.y == dest.y){
-					System.out.println("FOUND DESTINATION!");
-				}
-				
-				//If a node with the same pos as s in the open list which has a lower f than s, skip this s
-				boolean skip = false;
-				for(Vector2 node : openList){
-					if(node.x == s.x || node.y == s.y){//Pos is the same
-						if(node.getF() < s.getF()){
-							//Skip this succ
-							skip = true;
-							break;
-						}
-					}
-				}
-				
-				if(skip){
-					continue;
-				}
-				
-				skip = false; //Reset skip to false.
-				
-				for(Vector2 node : closedList){
-					if(node.x == s.x || node.y == s.y){//Pos is the same
-						if(node.getF() < s.getF()){
-							//Skip this succ
-							skip = true;
-							break;
-						}
-					}
-				}
-				
-				if(skip){
-					continue;
-				}
-				
-				//Otherwise, add node to open List
-				openList.add(s);
-				System.out.println(openList);
-				
-			}//End for loop(directions)
-			closedList.add(Q);
-		}//End If openlist not empty 
-		
-		 
-		System.out.println("NO PATH FOUND!!!!!"); // Uh-oh
-		return openList;
+
 	
 	public BotInfo[] CheckTeamAmmo(){
 		
