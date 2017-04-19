@@ -28,7 +28,7 @@ public class lmaoMedic extends Bot {
 	private BotInfo me;
 	private BotInfo[] liveBots, deadBots;
 	
-	private boolean shotOK, moving, movingx;
+	private boolean shotOK, moving, movingx, first;
 
 	private Bullet[] bullets;
 	
@@ -38,7 +38,8 @@ public class lmaoMedic extends Bot {
 	
 	private Image current, up, down, left, right;
 	
-	private ArrayList<Vector2> nodes = new ArrayList<Vector2>(); //Create an array list to store debug points
+	
+	private ArrayList<Vector2> nodes = new ArrayList<Vector2>(), path; //Create an array list to store debug points
 	
 	public lmaoMedic() {
 		//String
@@ -73,6 +74,7 @@ public class lmaoMedic extends Bot {
 	public void newRound() {
 		moving = true;
 		movingx = true;
+		first = true;
 	}
 
 	
@@ -95,9 +97,11 @@ public class lmaoMedic extends Bot {
 //			System.out.println(bot);
 //		}
 		
-		for(Vector2 curPos : findPath(new Vector2(10,20))){
-			System.out.println(curPos.x + "  " + curPos.y);
+		if(first){
+			path = findPath(new Vector2(300,300));
+			first = false;
 		}
+		
 		
 		
 		setImage();
@@ -112,148 +116,140 @@ public class lmaoMedic extends Bot {
 	 * @return ArrayList<Vector2> Path. Example: [10,10],[10,9],[10,8],[11,8]  
 	 */
 	private ArrayList<Vector2> findPath(Vector2 dest){
+		
+		//Init openList, ClosedList
 		ArrayList<Vector2> path = new ArrayList<Vector2>(), openList= new ArrayList<Vector2>(), closedList = new ArrayList<Vector2>(); //Init 3 lists of Vector2s to be used
 		
-		closedList.add(new Vector2(pos.x, pos.y, 0, manDist(pos, dest)));//Add current pos to list
+		//Put start node in openList
+		openList.add(new Vector2(pos.x, pos.y, 0, manDist(pos, dest)));
 		
-		for(int i=0; i<4; i++){//Add all adjacent, walkable tiles to open list //TODO Fix length of isPathClear
-			switch(i){
-				case 1://Up
-					if(isPathClear(i,1)){
-						pos.y --;
-						openList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
-						pos.y ++;
-					}else{
-						pos.y --;
-						closedList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
-						pos.y ++;
-					}
-					break;
-				case 2://Down
-					if(isPathClear(i,1)){
-						pos.y ++;
-						openList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
-						pos.y --;
-					}else{
-						pos.y ++;
-						closedList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
-						pos.y --;
-					}
-					break;
-				case 3://Left
-					if(isPathClear(i,1)){
-						pos.x --;
-						openList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
-						pos.x ++;
-					}else{
-						pos.x --;
-						closedList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
-						pos.x ++;
-					}
-					break;
-				case 4://Right
-					if(isPathClear(i,1)){
-						pos.x --;
-						openList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
-						pos.x ++;
-					}else{
-						pos.x --;
-						closedList.add(new Vector2(pos.x,pos.y,1,manDist(pos,dest)));
-						pos.x ++;
-					}
-					break;
-			}
-		}
-		
-		while(true){
-			//Get the square on the open list with the lowest score and refer to it as bestTile.
-			Vector2 bestTile = null;//TODO MAY CAUSE TROUBLE USING THIS METHOD OF FINDING BEST
-			for(Vector2 tile: openList){ //For every tile in the openList
-				if(bestTile != null){//If the variable bestTile has been set
-					if((bestTile.g + bestTile.h) <= (tile.g + tile.h)){ //If this tile is better than the old "best" tile //TODO make a function to calculate score
-						bestTile = tile;
-					}else{
-						continue;//Restart loop becuase this tile isnt good enough
-					}
-				}else{
-					bestTile = tile; //Set the first time tile 
+		//While openList is not empty
+		while(!openList.isEmpty()){
+			
+			//Find the node with the least f, call it Q
+			Vector2 Q = openList.get(0);
+			for(Vector2 node : openList){
+				if(node.getF() > Q.getF()){
+					Q = node;
 				}
 			}
 			
-			if(bestTile == null){
-				System.out.println("ERROR 01"); //TODO ERROR 01, No path possible. I think.
+			if(Q == null){
+				System.out.println("ERROR, NO Q VALUE FOUND");
 				break;
 			}
 			
-			//Remove bestTile from open list and add it to the closed list
-			openList.remove(bestTile);
-			closedList.add(bestTile);
 			
-			//For each tile in bestTile's walkable distance
-			Vector2 T = null;
-			for(int t = 0; t < 4; t++){//For each direction
-				if(isPathClear(t,1,bestTile)){//Check if the direction is safe
-					switch(t){
-						case 1://Up
-							T = new Vector2(bestTile.x, bestTile.y-1,manDist(pos, bestTile),manDist(pos,dest));
-							break;
-						case 2://Down
-							T = new Vector2(bestTile.x, bestTile.y+1,manDist(pos, bestTile),manDist(pos,dest));
-							break;
-						case 3://Left
-							T = new Vector2(bestTile.x-1, bestTile.y,manDist(pos, bestTile),manDist(pos,dest));
-							break;
-						case 4://Right
-							T = new Vector2(bestTile.x+1, bestTile.y,manDist(pos, bestTile),manDist(pos,dest));
-							break;
-					}
-				}else{ //Add all blocked tiles to closed list
-					switch(t){
-						case 1://Up
-							closedList.add(new Vector2(bestTile.x, bestTile.y-1,manDist(pos, bestTile),manDist(pos,dest)));
-							break;
-						case 2://Down
-							closedList.add(new Vector2(bestTile.x, bestTile.y+1,manDist(pos, bestTile),manDist(pos,dest)));
-							break;
-						case 3://Left
-							closedList.add(new Vector2(bestTile.x-1, bestTile.y,manDist(pos, bestTile),manDist(pos,dest)));
-							break;
-						case 4://Right
-							closedList.add(new Vector2(bestTile.x+1, bestTile.y,manDist(pos, bestTile),manDist(pos,dest)));
-							break;
-					}
-				}//End if/else
+			//Pop Q off the open list
+			openList.remove(Q);
+			
+			//Generate Q's four successors and parent them to Q
+			Vector2 s = null;
+			
+			for(int i = 1; i <= 4; i++){
+				double gridSize = 20;
+				System.out.println(i);
 				
+				switch(i){
+					case 1://Up
+						s = new Vector2(Q.x,Q.y-BOTSPEED,manDist(pos,Q),manDist(Q,dest));
+						s.parent = Q;
+						
+						if(!isPathClear(i, gridSize, Q)){//If the path is not clear in desired direction
+							closedList.add(s);
+							continue;//Continue the for loop
+						}
+						
+						break;//Break the case
+						
+					case 2://Down
+						s = new Vector2(Q.x,Q.y+BOTSPEED,manDist(pos,Q),manDist(Q,dest));
+						s.parent = Q;
+						
+						if(!isPathClear(i, gridSize, Q)){//If the path is not clear in desired direction
+							closedList.add(s);
+							continue;//Continue the for loop
+						}
+						
+						break;//Break the case
+						
+					case 3://Left
+						s = new Vector2(Q.x-BOTSPEED,Q.y,manDist(pos,Q),manDist(Q,dest));
+						s.parent = Q;
+						
+						if(!isPathClear(i, gridSize, Q)){//If the path is not clear in desired direction
+							closedList.add(s);
+							continue;//Continue the for loop
+						}
+						
+						break;//Break the case
+						
+					case 4://Right
+						s = new Vector2(Q.x+BOTSPEED,Q.y,manDist(pos,Q),manDist(Q,dest));
+						s.parent = Q;
+						
+						if(!isPathClear(i, gridSize, Q)){//If the path is not clear in desired direction
+							closedList.add(s);
+							continue;//Continue the for loop
+						}
+						
+						break;//Break the case	
+				}//End the switch for directions
 				
-				//If T in closed list, ignore it
-				if(closedList.contains(T)){
+				//Error
+				if(s == null){
+					System.out.println("ERROR NO s VECTOR");//TODO ERROR NO s VECTOR
 					break;
 				}
 				
-				//If T is not in open list, add it and figure out score
-				if(!openList.contains(T)){
-					openList.add(T);
+				//If S is the goal, stop.
+				if(s.x == dest.x && s.y == dest.y){
+					System.out.println("FOUND DESTINATION!");
 				}
 				
-				//If T is already in in open list: Check if the F score is lower when we use the current generated path to get there.
-				//If it is, update its score and update its parent.
+				//If a node with the same pos as s in the open list which has a lower f than s, skip this s
+				boolean skip = false;
+				for(Vector2 node : openList){
+					if(node.x == s.x || node.y == s.y){//Pos is the same
+						if(node.getF() < s.getF()){
+							//Skip this succ
+							skip = true;
+							break;
+						}
+					}
+				}
 				
-			}//End for each direction
-			
-			
-			
-			
-		}//While loop end
+				if(skip){
+					continue;
+				}
+				
+				skip = false; //Reset skip to false.
+				
+				for(Vector2 node : closedList){
+					if(node.x == s.x || node.y == s.y){//Pos is the same
+						if(node.getF() < s.getF()){
+							//Skip this succ
+							skip = true;
+							break;
+						}
+					}
+				}
+				
+				if(skip){
+					continue;
+				}
+				
+				//Otherwise, add node to open List
+				openList.add(s);
+				System.out.println(openList);
+				
+			}//End for loop(directions)
+			closedList.add(Q);
+		}//End If openlist not empty 
 		
-		
-		
-		
-		
-		
-		
-		System.out.println("NO PATH FOUND!!!!!"); // Uh oh
+		 
+		System.out.println("NO PATH FOUND!!!!!"); // Uh-oh
 		return openList;
-	}
 	
 	public BotInfo[] CheckTeamAmmo(){
 		

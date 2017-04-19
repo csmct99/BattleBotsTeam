@@ -8,6 +8,7 @@ import java.awt.Color;
 public class Vector2 {
 	public double x,y,g,h;
 	public Color color;
+	public Vector2 parent; 
 	
 	public Vector2(double x, double y) {
 		this.x = x;
@@ -25,6 +26,10 @@ public class Vector2 {
 		this.y = y;
 		this.g = g;
 		this.h = h;
+	}
+	
+	public double getF(){
+		return g + h;
 	}
 	
 	public boolean isCakeLie(){//     :P
