@@ -39,7 +39,6 @@ public class lmaoMedic extends Bot {
 	private Image current, up, down, left, right;
 	
 	
-	private ArrayList<Vector2> nodes = new ArrayList<Vector2>(), path; //Create an array list to store debug points
 	
 	public lmaoMedic() {
 		//String
@@ -82,7 +81,6 @@ public class lmaoMedic extends Bot {
 		setPublics(me,shotOK,liveBots,deadBots,bullets);
 		move = 0;
 		
-		nodes.add(new Vector2(pos.x, pos.y));
 		
 		if(moving){
 			if(moveTo(600,400)){
@@ -577,9 +575,6 @@ public class lmaoMedic extends Bot {
 	
 	public void draw(Graphics g, int x, int y) {
 		g.drawImage(current, x, y, Bot.RADIUS*2, Bot.RADIUS*2, null); //Draw the bot
-		g.setColor(Color.white);//Default node color
-		drawPoints(nodes, 3, g);
-		
 	}
 
 
